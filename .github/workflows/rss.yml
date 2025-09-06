@@ -1,0 +1,39 @@
+name: Build daily RSS
+
+on:
+  schedule:
+    - cron: "5 * * * *"   # co godzinę o :05 (UTC) — najprościej obejść zmiany czasu
+  workflow_dispatch: {}    # pozwala uruchomić ręcznie z zakładki Actions
+
+permissions:
+  contents: write          # potrzebne, by workflow mógł zrobić commit do repo
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Warsaw
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build index.xml
+        run: |
+          python build_feed.py
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet; then
+            echo "Brak zmian."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add index.xml
+            git commit -m "Daily RSS update"
+            git push
+          fi
