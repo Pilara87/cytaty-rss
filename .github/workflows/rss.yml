@@ -28,12 +28,14 @@ jobs:
 
       - name: Commit if changed
         run: |
-          if git diff --quiet; then
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # dodaj wszystkie zmiany (w tym nowe pliki) do indeksu
+          git add -A
+          # sprawdź czy coś jest w indeksie do commita
+          if git diff --cached --quiet; then
             echo "Brak zmian."
           else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.xml
             git commit -m "Daily RSS update"
             git push
           fi
